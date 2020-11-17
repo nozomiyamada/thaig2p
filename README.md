@@ -43,7 +43,7 @@ dictionary-based G2P (grapheme to phoneme)
 |K|kʰ|
 |ŋ|ŋ|
 |w|w|
-|y|y|
+|j|j|
 |h|h|
 |ʔ|ʔ|
 
