@@ -3,7 +3,7 @@
 dictionary-based G2P (grapheme to phoneme)
 
 |graphs in dictionary|IPA|
-|:-:|:-:|:-:|
+|:-:|:-:|
 |a|a|
 |A|aː|
 |i|i|
