@@ -156,7 +156,8 @@ def __is_number(text:str):
 
 def __get_phone_number(number:str):
     # 3,120 -> sAm5 Pan1 rXj4 jI-3 sip2
-    number = str(number) # 123.5 -> "123.5"
+    # 123.123 -> nɯŋ2 rXj4 jI-3 sip2 sAm5 cut2 nɯŋ2 sXŋ5 sAm5
+    number = str(number) # float 123.5 -> str "123.5"
     if re.match(r'0[0-9]*[1-9]+', number): # e.g. 0012 (exclude 0, 00)
         number = number.lstrip('0') # 0012 -> 12
     number = number.replace(',', '') # 1,000 -> 1000
@@ -182,6 +183,12 @@ def __get_phone_number(number:str):
                 phone = __get_phone_number(upper) + ' lAn4'
             else:
                 phone = __get_phone_number(upper) + ' lAn4 ' + __get_phone_number(lower)
+        else:
+            return number # longer than 12, return original
+    else: # decimal
+        integer, decimal = number.split('.')
+        decimal = ' '.join([__get_phone_number(x) for x in decimal]) # get one by one
+        phone = __get_phone_number(integer) + ' cut2 ' + decimal
     if minus:
         return 'lop4 ' + phone
     else:
@@ -223,8 +230,8 @@ def g2p(sentence:str, transcription='haas', return_tokens=False):
         if token == 'น.' and i > 0 and (token_phone_list[i-1][1] == 'nA-1 li-4 kA-1' or token_phone_list[i-1][1] == 'nA-1 TI-1'): # avoid duplicate 
             continue
         elif token == 'ๆ' and i > 0:
-            token_phone_list[i-1][0] += ' ๆ'
-            token_phone_list[i-1][1] += ' ' + token_phone_list[i-1][1]
+            token_phone_list[-1][0] += ' ๆ'
+            token_phone_list[-1][1] += ' ' + token_phone_list[-1][1]
         elif token in THAI2PHONE_DICT:
             token_phone_list.append([token, __decode(__get_phone_word(token), transcription=transcription)])
         elif __is_time(token):
