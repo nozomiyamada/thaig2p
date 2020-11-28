@@ -5,13 +5,13 @@ from pythainlp import word_tokenize
 ### CONSTANTS
 ##################################################
 
-SHORT_VOWELS = "aiɯueɛoɔə"
-LONG_VOWELS =  "AIWUEYOXZ"
-DIPHTHONGS = "JRV"
+SHORT_VOWELS = "aivueyoxz"
+LONG_VOWELS =  "AIVUEYOXZ"
+DIPHTHONGS = "JWR"
 VOWELS = SHORT_VOWELS + LONG_VOWELS + DIPHTHONGS
 CLUSTERS = ["br","bl","pr","pl","Pr","Pl","fr","fl","dr","tr","Tr","kr","kl","kw","Kr","Kl","Kw"]
-ONSETS = ["b","p","P","m","f","d","t","T","n","s","r","l","c","C","k","K","ŋ","w","j","h","ʔ"]
-CODAS = ["p","m","f","t","d","n","s","l","k","ŋ","w","j","ʔ","-"]
+ONSETS = ["b","p","P","m","f","d","t","T","n","s","r","l","c","C","k","K","N","w","j","h","?"]
+CODAS = ["p","m","f","t","d","n","s","l","k","N","w","j","?","-"]
 
 # read dictionary
 with open('thai2phone.csv') as f:
@@ -195,6 +195,70 @@ def __get_phone_number(number:str):
     else:
         return phone
 
+def __get_phone_word_tltk(thaiword):
+    # if the word is not in dict, use tltk instead
+    # tltk may return several sentences e.g. <tr/>paj0|maj4|<s/><tr/>maj2|paj0|<s/>
+    # sentences = ['paj0|maj4', 'maj2|paj0']
+    decoded_syls = []
+    result = tltk.g2p(thaiword)
+    tokens = re.findall(r'<tr/>(.+?)\|<s/>', result)
+    for token in tokens: # 'paj0|maj4'
+        for syl in re.split(r"[|~\']", token): # 'paj0', 'maj4'
+            ### change encoding ###
+            tone = str(int(syl[-1]) + 1) # 0 -> 1
+            syl = syl[:-1] + tone
+            # replace vowels
+            syl = re.sub(r'iia(?=\d)', 'J-', syl) # /ia/
+            syl = re.sub(r'iia', 'J', syl)
+            syl = re.sub(r'ia', 'J-', syl)
+            syl = re.sub(r'UUa(?=\d)', 'W-', syl) # /ɯa/
+            syl = re.sub(r'UUa', 'W', syl)
+            syl = re.sub(r'Ua', 'W-', syl)
+            syl = re.sub(r'uua(?=\d)', 'R-', syl) # /ua/
+            syl = re.sub(r'uua', 'R', syl)
+            syl = re.sub(r'ua', 'R-', syl)
+            syl = re.sub(r'aa(?=\d)', 'A-', syl) # no coda
+            syl = re.sub(r'aa', 'A', syl) # with coda
+            syl = re.sub(r'a(?=\d)', 'a-', syl) # no coda
+            syl = re.sub(r'ii(?=\d)', 'I-', syl)
+            syl = re.sub(r'ii', 'I', syl)
+            syl = re.sub(r'i(?=\d)', 'i-', syl)
+            syl = re.sub(r'UU(?=\d)', 'V-', syl) # /ɯ/
+            syl = re.sub(r'UU', 'V', syl)
+            syl = re.sub(r'U(?=\d)', 'v-', syl)
+            syl = re.sub(r'U', 'v', syl)
+            syl = re.sub(r'uu(?=\d)', 'U-', syl) # /u/
+            syl = re.sub(r'uu', 'U', syl)
+            syl = re.sub(r'u(?=\d)', 'u-', syl)
+            syl = re.sub(r'xx(?=\d)', 'Y-', syl) # /ɛ/
+            syl = re.sub(r'xx', 'Y', syl)
+            syl = re.sub(r'x(?=\d)', 'y-', syl)
+            syl = re.sub(r'x', 'y', syl)
+            syl = re.sub(r'ee(?=\d)', 'E-', syl) # /e/
+            syl = re.sub(r'ee', 'E', syl)
+            syl = re.sub(r'e(?=\d)', 'e-', syl)
+            syl = re.sub(r'OO(?=\d)', 'X-', syl) # /ɔ/
+            syl = re.sub(r'OO', 'X', syl)
+            syl = re.sub(r'o(?=\d)', 'x-', syl)
+            syl = re.sub(r'o', 'x', syl)
+            syl = re.sub(r'oo(?=\d)', 'O-', syl) # /o/
+            syl = re.sub(r'oo', 'O', syl)
+            syl = re.sub(r'o(?=\d)', 'o-', syl)
+            syl = re.sub(r'@@(?=\d)', 'Z-', syl) # /ə/
+            syl = re.sub(r'@@', 'Z', syl)
+            syl = re.sub(r'@(?=\d)', 'z-', syl)
+            syl = re.sub(r'@', 'z', syl)
+            # replace consonants
+            syl = re.sub(r'th', 'T', syl)
+            syl = re.sub(r'kh', 'K', syl)
+            syl = re.sub(r'ph', 'P', syl)
+            syl = re.sub(r'ch', 'C', syl)
+
+            decoded_syls.append(syl)
+
+    return ' '.join(decoded_syls)
+
+
 ##################################################
 ### G2P FUNCTIONS
 ##################################################
@@ -242,7 +306,7 @@ def g2p(sentence:str, transcription='haas', return_tokens=False):
         elif token in THAI2PHONE_DICT:
             phone = __decode(__get_phone_word(token), transcription=transcription)
         elif re.match(r'[ก-๙][ก-๙\-\.]*$', token): # thaiword, but not in dictionary
-            phone = None
+            phone = __decode(__get_phone_word_tltk(token), transcription=transcription)
         elif __is_time(token):
             phone = __decode(__get_phone_time(token), transcription=transcription)
         elif __is_number(token):
@@ -263,26 +327,26 @@ PHONE2IPA = {
     'I1':'iː','I2':'ìː','I3':'îː','I4':'íː','I5':'ǐː',
     'u1':'u', 'u2':'ù', 'u3':'û', 'u4':'ú', 'u5':'ǔ',
     'U1':'uː','U2':'ùː','U3':'ûː','U4':'úː','U5':'ǔː',
-    'ɯ1':'ɯ', 'ɯ2':'ɯ̀', 'ɯ3':'ɯ̂', 'ɯ4':'ɯ́', 'ɯ5':'ɯ̌',
-    'W1':'ɯː','W2':'ɯ̀ː','W3':'ɯ̂ː','W4':'ɯ́ː','W5':'ɯ̌ː',
+    'v1':'ɯ', 'v2':'ɯ̀', 'v3':'ɯ̂', 'v4':'ɯ́', 'v5':'ɯ̌',
+    'V1':'ɯː','V2':'ɯ̀ː','V3':'ɯ̂ː','V4':'ɯ́ː','V5':'ɯ̌ː',
     'e1':'e', 'e2':'è', 'e3':'ê', 'e4':'é', 'e5':'ě',
     'E1':'eː','E2':'èː','E3':'êː','E4':'éː','E5':'ěː',
-    'ɛ1':'ɛ', 'ɛ2':'ɛ̀', 'ɛ3':'ɛ̂', 'ɛ4':'ɛ́', 'ɛ5':'ɛ̌',
+    'y1':'ɛ', 'y2':'ɛ̀', 'y3':'ɛ̂', 'y4':'ɛ́', 'y5':'ɛ̌',
     'Y1':'ɛː','Y2':'ɛ̀ː','Y3':'ɛ̂ː','Y4':'ɛ́ː','Y5':'ɛ̌ː',
     'o1':'o', 'o2':'ò', 'o3':'ô', 'o4':'ó', 'o5':'ǒ',
     'O1':'oː','O2':'òː','O3':'ôː','O4':'óː','O5':'ǒː',
-    'ɔ1':'ɔ', 'ɔ2':'ɔ̀', 'ɔ3':'ɔ̂', 'ɔ4':'ɔ́', 'ɔ5':'ɔ̌',
+    'x1':'ɔ', 'x2':'ɔ̀', 'x3':'ɔ̂', 'x4':'ɔ́', 'x5':'ɔ̌',
     'X1':'ɔː','X2':'ɔ̀ː','X3':'ɔ̂ː','X4':'ɔ́ː','X5':'ɔ̌ː',
-    'ə1':'ə', 'ə2':'ə̀', 'ə3':'ə̂', 'ə4':'ə́', 'ə5':'ə̌',
+    'z1':'ə', 'z2':'ə̀', 'z3':'ə̂', 'z4':'ə́', 'z5':'ə̌',
     'Z1':'əː','Z2':'ə̀ː','Z3':'ə̂ː','Z4':'ə́ː','Z5':'ə̌ː',
-    'J1':'ia','J2':'ìa','J3':'îa','J4':'ía','J5':'ǐa',
-    'R1':'ɯa','R2':'ɯ̀a','R3':'ɯ̂a','R4':'ɯ́a','R5':'ɯ̌a',
-    'V1':'ua','V2':'ùa','V3':'ûa','V4':'úa','V5':'ǔa',
+    'J1':'iə','J2':'ìə','J3':'îə','J4':'íə','J5':'ǐə',
+    'W1':'ɯə','W2':'ɯ̀ə','W3':'ɯ̂ə','W4':'ɯ́ə','W5':'ɯ̌ə',
+    'R1':'uə','R2':'ùə','R3':'ûə','R4':'úə','R5':'ǔə',
     'b':'b',  'p':'p',   'P':'pʰ', 'm':'m',  'f':'f',
     'd':'d',  't':'t',   'T':'tʰ', 'n':'n',  's':'s',
     'r':'r',  'l':'l',   'c':'tɕ', 'C':'tɕʰ',
-    'k':'k',  'K':'kʰ',  'ŋ':'ŋ',
-    'w':'w',  'j':'j',   'h':'h',  'ʔ':'ʔ',
+    'k':'k',  'K':'kʰ',  'N':'ŋ',
+    'w':'w',  'j':'j',   'h':'h',  '?':'ʔ',
     '.':'.',   '-':''
 }
 
@@ -293,25 +357,25 @@ PHONE2HAAS = {
     'I1':'ii','I2':'ìi','I3':'îi','I4':'íi','I5':'ǐi',
     'u1':'u', 'u2':'ù', 'u3':'û', 'u4':'ú', 'u5':'ǔ',
     'U1':'uu','U2':'ùu','U3':'ûu','U4':'úu','U5':'ǔu',
-    'ɯ1':'ɯ', 'ɯ2':'ɯ̀', 'ɯ3':'ɯ̂', 'ɯ4':'ɯ́', 'ɯ5':'ɯ̌',
-    'W1':'ɯɯ','W2':'ɯ̀ɯ','W3':'ɯ̂ɯ','W4':'ɯ́ɯ','W5':'ɯ̌ɯ',
+    'v1':'ɯ', 'v2':'ɯ̀', 'v3':'ɯ̂', 'v4':'ɯ́', 'v5':'ɯ̌',
+    'V1':'ɯɯ','V2':'ɯ̀ɯ','V3':'ɯ̂ɯ','V4':'ɯ́ɯ','V5':'ɯ̌ɯ',
     'e1':'e', 'e2':'è', 'e3':'ê', 'e4':'é', 'e5':'ě',
     'E1':'ee','E2':'èe','E3':'êe','E4':'ée','E5':'ěe',
-    'ɛ1':'ɛ', 'ɛ2':'ɛ̀', 'ɛ3':'ɛ̂', 'ɛ4':'ɛ́', 'ɛ5':'ɛ̌',
+    'y1':'ɛ', 'y2':'ɛ̀', 'y3':'ɛ̂', 'y4':'ɛ́', 'y5':'ɛ̌',
     'Y1':'ɛɛ','Y2':'ɛ̀ɛ','Y3':'ɛ̂ɛ','Y4':'ɛ́ɛ','Y5':'ɛ̌ɛ',
     'o1':'o', 'o2':'ò', 'o3':'ô', 'o4':'ó', 'o5':'ǒ',
     'O1':'oo','O2':'òo','O3':'ôo','O4':'óo','O5':'ǒo',
-    'ɔ1':'ɔ', 'ɔ2':'ɔ̀', 'ɔ3':'ɔ̂', 'ɔ4':'ɔ́', 'ɔ5':'ɔ̌',
+    'x1':'ɔ', 'x2':'ɔ̀', 'x3':'ɔ̂', 'x4':'ɔ́', 'x5':'ɔ̌',
     'X1':'ɔɔ','X2':'ɔ̀ɔ','X3':'ɔ̂ɔ','X4':'ɔ́ɔ','X5':'ɔ̌ɔ',
-    'ə1':'ə', 'ə2':'ə̀', 'ə3':'ə̂', 'ə4':'ə́', 'ə5':'ə̌',
+    'z1':'ə', 'z2':'ə̀', 'z3':'ə̂', 'z4':'ə́', 'z5':'ə̌',
     'Z1':'əə','Z2':'ə̀ə','Z3':'ə̂ə','Z4':'ə́ə','Z5':'ə̌ə',
     'J1':'ia','J2':'ìa','J3':'îa','J4':'ía','J5':'ǐa',
-    'R1':'ɯa','R2':'ɯ̀a','R3':'ɯ̂a','R4':'ɯ́a','R5':'ɯ̌a',
-    'V1':'ua','V2':'ùa','V3':'ûa','V4':'úa','V5':'ǔa',
+    'W1':'ɯa','W2':'ɯ̀a','W3':'ɯ̂a','W4':'ɯ́a','W5':'ɯ̌a',
+    'R1':'ua','R2':'ùa','R3':'ûa','R4':'úa','R5':'ǔa',
     'b':'b',  'p':'p',   'P':'pʰ', 'm':'m',  'f':'f',
     'd':'d',  't':'t',   'T':'tʰ', 'n':'n',  's':'s',
     'r':'r',  'l':'l',   'c':'c', 'C':'cʰ',
-    'k':'k',  'K':'kʰ',  'ŋ':'ŋ',
-    'w':'w',  'j':'y',   'h':'h',  'ʔ':'ʔ',
+    'k':'k',  'K':'kʰ',  'N':'ŋ',
+    'w':'w',  'j':'y',   'h':'h',  '?':'ʔ',
     '.':'.',   '-':''
 }
