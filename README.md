@@ -53,7 +53,7 @@ dictionary-based G2P (grapheme to phoneme)
 |/ย/|j|j|y|
 |/ห/|h|h|h|
 |/อ/|?|ʔ|ʔ|
-|/ะ/|-|no coda|no coda|
+|ะ|-|no coda|no coda|
 
 e.g.
 - ปลา plA-1
