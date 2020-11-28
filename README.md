@@ -1,6 +1,19 @@
 # thaig2p
 
-dictionary-based G2P (grapheme to phoneme)
+dictionary-based + LSTM G2P (grapheme to phoneme)
+
+in the dictionary, all phonemes are encoded as **one character** as below
+
+one syllable is consist of 4-5 characters
+
+- onset (1-2)
+- vowel (1)
+- coda (1)
+- tone (1)
+
+e.g.
+- ปลา `plA-1`
+- ธนาคารแห่งประเทศไทย `Ta-4 nA-1 KAn1 hyN2 pra-1 TEt3 Taj1`
 
 ### vowels
 
@@ -28,7 +41,7 @@ dictionary-based G2P (grapheme to phoneme)
 |/เอือ/|W|ɯə|ɯa|
 |/อัว/|R|uə|ua|
 
-- consonants
+### consonants
 
 |phoneme|encoded|IPA|Haas|
 |:-:|:-:|:-:|:-:|
@@ -53,9 +66,6 @@ dictionary-based G2P (grapheme to phoneme)
 |/ย/|j|j|y|
 |/ห/|h|h|h|
 |/อ/|?|ʔ|ʔ|
-|ะ|-|no coda|no coda|
+|no coda|-|||
 
-e.g.
-- ปลา plA-1
-- อร่อยมาก ?a-1 roj2 mAk3
 - "ไทมส์" ทำไงดี 
