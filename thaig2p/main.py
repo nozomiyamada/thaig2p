@@ -1,7 +1,6 @@
 import os, html, re, tltk, csv
 from pythainlp import word_tokenize
 
-
 ##################################################
 ### CONSTANTS
 ##################################################
@@ -66,37 +65,37 @@ def __validate(phone):
             return False
     return True
 
-def __get_tones(phone):
+def __get_tones(phone:str):
     """get all tones of one word
     >>> get_tones('paj1 dAj3') -> (1, 3)
     """
     return tuple(syl[-1] for syl in phone.split())
 
-def __get_onsets(phone, ipa=False):
+def __get_onsets(phone:str, ipa=False):
     """get all onsets of one word
     >>> get_onsets('paj1 dAj3') -> (p, d)
     """
     return tuple(syl[:-3] for syl in phone.split())
 
-def __get_vowels(phone):
+def __get_vowels(phone:str):
     """get all vowels of one word
     >>> get_tones('paj1 dAj3') -> (a, A)
     """
     return tuple(syl[-3] for syl in phone.split())
 
-def __get_codas(phone):
+def __get_codas(phone:str):
     """get all codas of one word
     >>> get_codas('paj1 dAj3') -> (j, j)
     """
     return tuple(syl[-2] for syl in phone.split())
 
-def __get_vowels_tone(phone):
+def __get_vowels_tone(phone:str):
     """get all vowels & tones of one word
     >>> get_vowels_tone('paj1 dAj3') -> (a1, A3)
     """
     return tuple(syl[-3]+syl[-1] for syl in phone.split())
 
-def __decode(phone, transcription='haas'):
+def decode(phone:str, transcription='haas'):
     """decode phone into Haas or IPA
     :phone: encoded phone
     :transcription: - 'haas' or 'ipa'
@@ -123,23 +122,17 @@ def __decode(phone, transcription='haas'):
             decoded_syls.append(''.join([PHONE2HAAS[c] for c in onset]) + PHONE2HAAS[vowel+tone] + PHONE2HAAS[coda])
     return ' '.join(decoded_syls)
 
-"""
-def tokenize(text, delete_newline=True, twitter=False):
+def clean(text:str):
     text = html.unescape(text)
-    if twitter:
-        text = re.sub(r'@.+?(?:\s|$)', '', text) # for twitter
-        text = re.sub(r'pic\.twitter\.com.+?(?:\s|$)', '', text) # for twitter
-    text = re.sub(r'http.+?\b', '', text)
+    text = re.sub(r'[\n\s]+', ' ', text) # shrink whitespaces
+    text = re.sub(r'http[^\s]+((?=\s)|(?=$))', '', text) # remove URL
+    text = re.sub(r'\((.+?)\)', r'( \1 )', text) # add space before/after parentheses
+    text = re.sub(r'\"(.+?)\"', r'" \1 "', text) # add space before/after quotation
     text = re.sub(r'[“”„]', '"', text) # convert double quotations into "
     text = re.sub(r'[‘’`]', "'", text) # convert single quotations into '
     text = re.sub(r'[ \u00a0\xa0\u3000\u2002-\u200a\t]+', ' ', text) # e.g. good  boy -> good boy
     text = re.sub(r'[\r\u200b\ufeff]+', '', text) # remove non-breaking space
-    text = text.strip()
-    if delete_newline:
-        text = re.sub(r'\n+', ' ', text)
-    tokens = word_tokenize(text, keep_whitespace=False)
-    return [token.strip('"').strip("'").strip("(").strip(")") for token in tokens]
-"""
+    return text.strip()
 
 def __get_phone_word(thaiword:str):
     # if the word in the dict, return the phone
@@ -200,7 +193,7 @@ def __get_phone_number(number:str):
     else:
         return phone
 
-def __get_phone_word_tltk(thaiword):
+def __get_phone_word_tltk(thaiword:str):
     # if the word is not in dict, use tltk instead
     # tltk may return several sentences e.g. <tr/>paj0|maj4|<s/><tr/>maj2|paj0|<s/>
     # sentences = ['paj0|maj4', 'maj2|paj0']
@@ -213,7 +206,9 @@ def __get_phone_word_tltk(thaiword):
         for syl in re.split(r"[|^~\']", token): 
             syl = syl.replace('\\', '') # remove \ e.g. เจิ้น -> c\\@n2
             ### change encoding ###
-            tone = str(int(syl[-1]) + 1) # 0 -> 1
+            tone = str(int(syl[-1])+1) # 0 -> 1
+            if tone > 5:
+                tone -= 5
             syl = syl[:-1] + tone
             # replace vowels
             syl = re.sub(r'iia(?=\d)', 'J-', syl) # /ia/
@@ -273,7 +268,7 @@ def __get_phone_word_tltk(thaiword):
 
 # try tokenization by pythainlp -> look up dictionary
 # if there is None, try use tltk instead
-def g2p(sentence, transcription='haas', return_tokens=False):
+def g2p(sentence:str, transcription='haas', return_tokens=False):
     """G2P function for Thai sentence
 
     Parameters
@@ -298,10 +293,7 @@ def g2p(sentence, transcription='haas', return_tokens=False):
 
     ### tokenize ###
     if type(sentence) == str: # input is string
-        # preprocessing 
-        sentence = re.sub(r'[\n\s]+', ' ', sentence) # shrink whitespaces
-        sentence = re.sub(r'http[^\s]+((?=\s)|(?=$))', '', sentence) # remove URL
-        sentence = re.sub(r'\((.+?)\)', r'( \1 )', sentence) # add space before/after parentheses
+        sentence = clean(sentence) # preprocessing
         tokens = word_tokenize(sentence, keep_whitespace=False)
     elif type(sentence) == list and type(sentence[0]) == str: # input is tokens already
         tokens = sentence
@@ -317,15 +309,17 @@ def g2p(sentence, transcription='haas', return_tokens=False):
             token_phone_list[-1][0] += ' ๆ'
             token_phone_list[-1][1] += ' ' + token_phone_list[-1][1]
         elif token in THAI2PHONE_DICT:
-            phone = __decode(__get_phone_word(token), transcription=transcription)
+            phone = decode(__get_phone_word(token), transcription=transcription)
+        elif re.match('[ก-ฮ]$', token): # only one thai character -> pass
+            continue
         # thaiword, but not in dictionary -> use tltk instead
         elif re.match(r'[ก-๙][ก-๙\-\.]*$', token): 
             #phone = None # return None when test
-            phone = __decode(__get_phone_word_tltk(token), transcription=transcription)
+            phone = decode(__get_phone_word_tltk(token), transcription=transcription)
         elif __is_time(token):
-            phone = __decode(__get_phone_time(token), transcription=transcription)
+            phone = decode(__get_phone_time(token), transcription=transcription)
         elif __is_number(token):
-            phone = __decode(__get_phone_number(token), transcription=transcription)
+            phone = decode(__get_phone_number(token), transcription=transcription)
         else: # do nothing for the others, e.g. english, punctuation...
             phone = token
         token_phone_list.append([token, phone])
@@ -387,10 +381,10 @@ PHONE2HAAS = {
     'J1':'ia','J2':'ìa','J3':'îa','J4':'ía','J5':'ǐa',
     'W1':'ɯa','W2':'ɯ̀a','W3':'ɯ̂a','W4':'ɯ́a','W5':'ɯ̌a',
     'R1':'ua','R2':'ùa','R3':'ûa','R4':'úa','R5':'ǔa',
-    'b':'b',  'p':'p',   'P':'pʰ', 'm':'m',  'f':'f',
-    'd':'d',  't':'t',   'T':'tʰ', 'n':'n',  's':'s',
-    'r':'r',  'l':'l',   'c':'c', 'C':'cʰ',
-    'k':'k',  'K':'kʰ',  'N':'ŋ',
+    'b':'b',  'p':'p',   'P':'ph', 'm':'m',  'f':'f',
+    'd':'d',  't':'t',   'T':'th', 'n':'n',  's':'s',
+    'r':'r',  'l':'l',   'c':'c', 'C':'ch',
+    'k':'k',  'K':'kh',  'N':'ŋ',
     'w':'w',  'j':'y',   'h':'h',  '?':'ʔ',
     '.':'.',   '-':''
 }
