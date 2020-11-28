@@ -58,3 +58,4 @@ dictionary-based G2P (grapheme to phoneme)
 e.g.
 - ปลา plA-1
 - อร่อยมาก ?a-1 roj2 mAk3
+- "ไทมส์" ทำไงดี 
