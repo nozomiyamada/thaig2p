@@ -2,58 +2,58 @@
 
 dictionary-based G2P (grapheme to phoneme)
 
-- vowels
+### vowels
 
-|encoded|IPA|Haas|
-|:-:|:-:|:-:|
-|a|a|a|
-|A|aː|aa|
-|i|i|i|
-|I|iː|ii|
-|u|u|u|
-|U|uː|uu|
-|v|ɯ|ɯ|
-|V|ɯː|ɯɯ|
-|e|e|e|
-|E|eː|ee|
-|y|ɛ|ɛ|
-|Y|ɛː|ɛɛ|
-|o|o|o|
-|O|oː|oo|
-|x|ɔ|ɔ|
-|X|ɔː|ɔɔ|
-|z|ə|ə|
-|Z|əː|əə|
-|J|iə|ia|
-|W|ɯə|ɯa|
-|R|uə|ua|
+|phoneme|encoded|IPA|Haas|
+|:-:|:-:|:-:|:-:|
+|/อะ/|a|a|a|
+|/อา/|A|aː|aa|
+|/อิ/|i|i|i|
+|/อี/|I|iː|ii|
+|/อุ/|u|u|u|
+|/อู/|U|uː|uu|
+|/อึ/|v|ɯ|ɯ|
+|/อือ/|V|ɯː|ɯɯ|
+|/เอะ/|e|e|e|
+|/เอ/|E|eː|ee|
+|/แอะ/|y|ɛ|ɛ|
+|/แอ/|Y|ɛː|ɛɛ|
+|/โอะ/|o|o|o|
+|/โอ/|O|oː|oo|
+|/เอาะ/|x|ɔ|ɔ|
+|/ออ/|X|ɔː|ɔɔ|
+|/เออะ/|z|ə|ə|
+|/เออ/|Z|əː|əə|
+|/เอีย/|J|iə|ia|
+|/เอือ/|W|ɯə|ɯa|
+|/อัว/|R|uə|ua|
 
 - consonants
 
-|encoded|IPA|Haas|
-|:-:|:-:|:-:|
-|b|b|b|
-|p|p|p|
-|P|pʰ|pʰ|
-|m|m|m|
-|f|f|f|
-|d|d|d|
-|t|t|t|
-|T|tʰ|tʰ|
-|n|n|n|
-|s|s|s|
-|r|r|r|
-|l|l|l|
-|c|tɕ|c|
-|C|tɕʰ|cʰ|
-|k|k|k|
-|K|kʰ|kʰ|
-|N|ŋ|ŋ|
-|w|w|w|
-|j|j|y|
-|h|h|h|
-|?|ʔ|ʔ|
-|-|no coda|no coda|
+|phoneme|encoded|IPA|Haas|
+|:-:|:-:|:-:|:-:|
+|/บ/|b|b|b|
+|/ป/|p|p|p|
+|/พ/|P|pʰ|pʰ|
+|/ม/|m|m|m|
+|/ฟ/|f|f|f|
+|/ด/|d|d|d|
+|/ต/|t|t|t|
+|/ท/|T|tʰ|tʰ|
+|/น/|n|n|n|
+|/ส/|s|s|s|
+|/ร/|r|r|r|
+|/ล/|l|l|l|
+|/จ/|c|tɕ|c|
+|/ช/|C|tɕʰ|cʰ|
+|/ก/|k|k|k|
+|/ค/|K|kʰ|kʰ|
+|/ง/|N|ŋ|ŋ|
+|/ว/|w|w|w|
+|/ย/|j|j|y|
+|/ห/|h|h|h|
+|/อ/|?|ʔ|ʔ|
+|/ะ/|-|no coda|no coda|
 
 e.g.
 - ปลา plA-1
