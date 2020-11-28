@@ -1,5 +1,6 @@
-import html, re, tltk, csv
+import os, html, re, tltk, csv
 from pythainlp import word_tokenize
+
 
 ##################################################
 ### CONSTANTS
@@ -14,10 +15,11 @@ ONSETS = ["b","p","P","m","f","d","t","T","n","s","r","l","c","C","k","K","N","w
 CODAS = ["p","m","f","t","d","n","s","l","k","N","w","j","?","-"]
 
 # read dictionary
-with open('thai2phone.csv') as f:
+abs_dir = os.path.dirname(__file__)
+with open(abs_dir + '/thai2phone.csv') as f:
     THAI2PHONE_DICT = dict(csv.reader(f))
     THAI2PHONE_DICT = {k:v for k,v in THAI2PHONE_DICT.items() if v != ''}
-with open('number2phone.csv') as f:
+with open(abs_dir + '/number2phone.csv') as f:
     NUMBER2PHONE_DICT = dict(csv.reader(f))
 
 ##################################################
@@ -108,8 +110,11 @@ def __decode(phone, transcription='haas'):
             continue
         tone = syl[-1]
         coda = syl[-2]
-        if i != len(syls) - 1: # if not the final syllable, delete ʔ
+        coda = coda.replace('ʔ','-') # delete all codas
+        """ # unless the final syllable, delete ʔ
+        if i != len(syls) - 1: 
             coda = coda.replace('ʔ','-') # "-" = no coda
+        """
         vowel = syl[-3]
         onset = syl[:-3] # one or two characters
         if transcription == 'ipa':
