@@ -26,7 +26,7 @@ dictionary-based G2P (grapheme to phoneme)
 |Z|əː|əə|
 |J|iə|ia|
 |W|ɯə|ɯa|
-|V|uə|ua|
+|R|uə|ua|
 
 - consonants
 
