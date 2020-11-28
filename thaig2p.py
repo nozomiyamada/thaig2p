@@ -203,7 +203,10 @@ def __get_phone_word_tltk(thaiword):
     result = tltk.g2p(thaiword)
     tokens = re.findall(r'<tr/>(.+?)\|<s/>', result)
     for token in tokens: # 'paj0|maj4'
-        for syl in re.split(r"[|~\']", token): # 'paj0', 'maj4'
+        # split to each syllable 'paj0', 'maj4'
+        # delimiter : | or ^ or ~ '
+        for syl in re.split(r"[|^~\']", token): 
+            syl = syl.replace('\\', '') # remove \ e.g. เจิ้น -> c\\@n2
             ### change encoding ###
             tone = str(int(syl[-1]) + 1) # 0 -> 1
             syl = syl[:-1] + tone
@@ -239,8 +242,8 @@ def __get_phone_word_tltk(thaiword):
             syl = re.sub(r'e(?=\d)', 'e-', syl)
             syl = re.sub(r'OO(?=\d)', 'X-', syl) # /ɔ/
             syl = re.sub(r'OO', 'X', syl)
-            syl = re.sub(r'o(?=\d)', 'x-', syl)
-            syl = re.sub(r'o', 'x', syl)
+            syl = re.sub(r'O(?=\d)', 'x-', syl)
+            syl = re.sub(r'O', 'x', syl)
             syl = re.sub(r'oo(?=\d)', 'O-', syl) # /o/
             syl = re.sub(r'oo', 'O', syl)
             syl = re.sub(r'o(?=\d)', 'o-', syl)
@@ -265,13 +268,13 @@ def __get_phone_word_tltk(thaiword):
 
 # try tokenization by pythainlp -> look up dictionary
 # if there is None, try use tltk instead
-def g2p(sentence:str, transcription='haas', return_tokens=False):
+def g2p(sentence, transcription='haas', return_tokens=False):
     """G2P function for Thai sentence
 
     Parameters
     ----------
-    sentence : str
-        Thai sentences
+    sentence : str or list
+        string of Thai sentences or list of tokenized words 
     transcription : str
         'haas'(default) or 'ipa'
     return_token : bool
@@ -288,12 +291,16 @@ def g2p(sentence:str, transcription='haas', return_tokens=False):
     >>> g2p('ไปโรงเรียน', return_tokens=True) -> [['ไป', 'pay'], ['โรงเรียน', 'rooŋ rian']]
     """
 
-    ### preprocessing ###
-    sentence = re.sub(r'[\n\s]+', ' ', sentence) # shrink whitespaces
-    sentence = re.sub(r'http[^\s]+((?=\s)|(?=$))', '', sentence) # remove URL
-
     ### tokenize ###
-    tokens = word_tokenize(sentence, keep_whitespace=False)
+    if type(sentence) == str: # input is string
+        # preprocessing 
+        sentence = re.sub(r'[\n\s]+', ' ', sentence) # shrink whitespaces
+        sentence = re.sub(r'http[^\s]+((?=\s)|(?=$))', '', sentence) # remove URL
+        sentence = re.sub(r'\((.+?)\)', r'( \1 )', sentence) # add space before/after parentheses
+        tokens = word_tokenize(sentence, keep_whitespace=False)
+    elif type(sentence) == list and type(sentence[0]) == str: # input is tokens already
+        tokens = sentence
+    
     token_phone_list = []
 
     ### check each token ###
@@ -301,11 +308,14 @@ def g2p(sentence:str, transcription='haas', return_tokens=False):
         if token == 'น.' and i > 0 and (token_phone_list[i-1][1] == 'nA-1 li-4 kA-1' or token_phone_list[i-1][1] == 'nA-1 TI-1'): # avoid duplicate
             continue
         elif token == 'ๆ' and i > 0: # if single ๆ, repeat final one
+            #print(token_phone_list[-1])
             token_phone_list[-1][0] += ' ๆ'
             token_phone_list[-1][1] += ' ' + token_phone_list[-1][1]
         elif token in THAI2PHONE_DICT:
             phone = __decode(__get_phone_word(token), transcription=transcription)
-        elif re.match(r'[ก-๙][ก-๙\-\.]*$', token): # thaiword, but not in dictionary
+        # thaiword, but not in dictionary -> use tltk instead
+        elif re.match(r'[ก-๙][ก-๙\-\.]*$', token): 
+            #phone = None # return None when test
             phone = __decode(__get_phone_word_tltk(token), transcription=transcription)
         elif __is_time(token):
             phone = __decode(__get_phone_time(token), transcription=transcription)
