@@ -16,13 +16,13 @@ dictionary-based G2P (grapheme to phoneme)
 |W|ɯː|ɯɯ|
 |e|e|e|
 |E|eː|ee|
-|ɛ|ɛ|ɛ|
+|y|ɛ|ɛ|
 |Y|ɛː|ɛɛ|
 |o|o|o|
 |O|oː|oo|
-|ɔ|ɔ|ɔ|
+|x|ɔ|ɔ|
 |X|ɔː|ɔɔ|
-|ə|ə|ə|
+|z|ə|ə|
 |Z|əː|əə|
 |J|iə|ia|
 |R|ɯə|ɯa|
@@ -48,12 +48,13 @@ dictionary-based G2P (grapheme to phoneme)
 |C|tɕʰ|cʰ|
 |k|k|k|
 |K|kʰ|kʰ|
-|ŋ|ŋ|ŋ|
+|N|ŋ|ŋ|
 |w|w|w|
 |j|j|y|
 |h|h|h|
-|ʔ|ʔ|ʔ|
+|?|ʔ|ʔ|
+|-|no coda|no coda|
 
 e.g.
-- ปลา plA1
-- อร่อยมาก a1 ro2j mA3k
+- ปลา plA-1
+- อร่อยมาก ?a-1 roj2 mAk3
