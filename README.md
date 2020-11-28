@@ -12,8 +12,8 @@ dictionary-based G2P (grapheme to phoneme)
 |I|iː|ii|
 |u|u|u|
 |U|uː|uu|
-|ɯ|ɯ|ɯ|
-|W|ɯː|ɯɯ|
+|v|ɯ|ɯ|
+|V|ɯː|ɯɯ|
 |e|e|e|
 |E|eː|ee|
 |y|ɛ|ɛ|
@@ -25,7 +25,7 @@ dictionary-based G2P (grapheme to phoneme)
 |z|ə|ə|
 |Z|əː|əə|
 |J|iə|ia|
-|R|ɯə|ɯa|
+|W|ɯə|ɯa|
 |V|uə|ua|
 
 - consonants
