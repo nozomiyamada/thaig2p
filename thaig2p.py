@@ -16,6 +16,7 @@ CODAS = ["p","m","f","t","d","n","s","l","k","ŋ","w","j","ʔ","-"]
 # read dictionary
 with open('thai2phone.csv') as f:
     THAI2PHONE_DICT = dict(csv.reader(f))
+    THAI2PHONE_DICT = {k:v for k,v in THAI2PHONE_DICT.items() if v != ''}
 with open('number2phone.csv') as f:
     NUMBER2PHONE_DICT = dict(csv.reader(f))
 
@@ -163,7 +164,7 @@ def __get_phone_number(number:str):
     number = number.replace(',', '') # 1,000 -> 1000
     minus = number[0] == '-' # bool to check negative
     number = number.strip('-') # delete initial -
-    if '.' not in number: # if not decimal
+    if '.' not in number: # if integer
         length = len(number)
         if length <= 2:
             if number in NUMBER2PHONE_DICT:
@@ -185,7 +186,7 @@ def __get_phone_number(number:str):
                 phone = __get_phone_number(upper) + ' lAn4 ' + __get_phone_number(lower)
         else:
             return number # longer than 12, return original
-    else: # decimal
+    else: # if decimal
         integer, decimal = number.split('.')
         decimal = ' '.join([__get_phone_number(x) for x in decimal]) # get one by one
         phone = __get_phone_number(integer) + ' cut2 ' + decimal
@@ -216,30 +217,39 @@ def g2p(sentence:str, transcription='haas', return_tokens=False):
     -------
     str
         syllables delimited by whitespaces 
+        or list of [token, phone]
 
     >>> g2p('ไปโรงเรียน') -> 'paj rooŋ rian'
     >>> g2p('ไปโรงเรียน', transcription='ipa') -> 'paj roːŋ rian'
-    >>> g2p('ไปโรงเรียน', return_tokens=True) -> [('ไป', 'pay'), ('โรงเรียน', 'rooŋ rian')]
+    >>> g2p('ไปโรงเรียน', return_tokens=True) -> [['ไป', 'pay'], ['โรงเรียน', 'rooŋ rian']]
     """
-    # tokenize with pythainlp first
+
+    ### preprocessing ###
     sentence = re.sub(r'[\n\s]+', ' ', sentence) # shrink whitespaces
-    sentence = re.sub(r'http[^\s]+((?=\s)|(?=$))', '', sentence) # remove URL 
+    sentence = re.sub(r'http[^\s]+((?=\s)|(?=$))', '', sentence) # remove URL
+
+    ### tokenize ###
     tokens = word_tokenize(sentence, keep_whitespace=False)
     token_phone_list = []
+
+    ### check each token ###
     for i, token in enumerate(tokens):
-        if token == 'น.' and i > 0 and (token_phone_list[i-1][1] == 'nA-1 li-4 kA-1' or token_phone_list[i-1][1] == 'nA-1 TI-1'): # avoid duplicate 
+        if token == 'น.' and i > 0 and (token_phone_list[i-1][1] == 'nA-1 li-4 kA-1' or token_phone_list[i-1][1] == 'nA-1 TI-1'): # avoid duplicate
             continue
-        elif token == 'ๆ' and i > 0:
+        elif token == 'ๆ' and i > 0: # if single ๆ, repeat final one
             token_phone_list[-1][0] += ' ๆ'
             token_phone_list[-1][1] += ' ' + token_phone_list[-1][1]
         elif token in THAI2PHONE_DICT:
-            token_phone_list.append([token, __decode(__get_phone_word(token), transcription=transcription)])
+            phone = __decode(__get_phone_word(token), transcription=transcription)
+        elif re.match(r'[ก-๙][ก-๙\-\.]*$', token): # thaiword, but not in dictionary
+            phone = None
         elif __is_time(token):
-            token_phone_list.append([token, __decode(__get_phone_time(token), transcription=transcription)])
+            phone = __decode(__get_phone_time(token), transcription=transcription)
         elif __is_number(token):
-            token_phone_list.append([token, __decode(__get_phone_number(token), transcription=transcription)])
-        else:
-            token_phone_list.append([token, __decode(token, transcription=transcription)])
+            phone = __decode(__get_phone_number(token), transcription=transcription)
+        else: # do nothing for the others, e.g. english, punctuation...
+            phone = token
+        token_phone_list.append([token, phone])
     if return_tokens:
         return token_phone_list
     else:
