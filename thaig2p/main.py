@@ -72,7 +72,7 @@ def get_tones(phone:str):
     """
     return tuple(syl[-1] for syl in phone.split())
 
-def get_onsets(phone:str, ipa=False):
+def get_onsets(phone:str):
     """get all onsets of one word
     >>> get_onsets('paj1 dAj3') -> (p, d)
     """
@@ -96,37 +96,10 @@ def get_vowels_tone(phone:str):
     """
     return tuple(syl[-3]+syl[-1] for syl in phone.split())
 
-def decode(phone:str, transcription='haas'):
-    """decode phone into Haas or IPA
-    :phone: encoded phone
-    :transcription: - 'haas' or 'ipa'
-    >>> decode('" kot2 mAj5 ʔA-1 jA-1 "', 'ipa') ->  " kòt mǎːj ʔaː jaː "
-    """
-    decoded_syls = []
-    syls = phone.split() # ['kot2','mAj5']
-    for i, syl in enumerate(syls):
-        if not validate(syl): # e.g. English, punctuation
-            decoded_syls.append(syl)
-            continue
-        tone = syl[-1]
-        coda = syl[-2]
-        coda = coda.replace('ʔ','-') # delete ? in all codas
-        """ # delete ? unless the final syllable
-        if i != len(syls) - 1: 
-            coda = coda.replace('ʔ','-') # "-" = no coda
-        """
-        vowel = syl[-3]
-        onset = syl[:-3] # one or two characters
-        if transcription == 'ipa':
-            decoded_syls.append(''.join([PHONE2IPA[c] for c in onset]) + PHONE2IPA[vowel+tone] + PHONE2IPA[coda])
-        elif transcription == 'haas':
-            decoded_syls.append(''.join([PHONE2HAAS[c] for c in onset]) + PHONE2HAAS[vowel+tone] + PHONE2HAAS[coda])
-    return ' '.join(decoded_syls)
-
 def clean(text:str):
     text = html.unescape(text)
     text = re.sub(r'[\n\s]+', ' ', text) # shrink whitespaces
-    text = re.sub(r'http[^\s]+((?=\s)|(?=$))', '', text) # remove URL
+    text = re.sub(r'https?://[^\s]+((?=\s)|(?=$))', '', text) # remove URL
     text = re.sub(r'\((.+?)\)', r'( \1 )', text) # add space before/after parentheses
     text = re.sub(r'\"(.+?)\"', r'" \1 "', text) # add space before/after quotation
     text = re.sub(r'[“”„]', '"', text) # convert double quotations into "
@@ -141,13 +114,15 @@ def get_phone_word(thaiword:str):
     return THAI2PHONE_DICT.get(thaiword, None)
 
 def is_time(text:str):
-    return bool(re.match(r'\d{1,2}[:\.]\d{1,2}', text))
+    # 8:00, 09.12, 12:12, 23.31น., etc
+    return bool(re.match(r'[012]?[0-9][:\.][0-5][0-9](\s*)?(น.)?', text))
 
 def get_phone_time(time:str):
     # 20.31 -> jI-3 sip2 nA-1 liʔ4 kA-1 sAm5 sip2 ʔet2 nA-1 TI-1
-    hour, minute = re.split(r'[:\.]', time)
+    hour, minute = re.split(r'[:\.]', time) # 23.31น. -> [23, 31น.]
+    minute = minute.split('น.')[0] # 31น. -> 31
     if minute == '00':
-        return get_phone_number(hour) + ' nA-1 li-4 kA-1'
+        return get_phone_number(hour) + ' nA-1 li-4 kA-1' # 8.00 -> pYt2 nA-1 li-4 kA-1
     else:
         return get_phone_number(hour) + ' nA-1 li-4 kA-1 ' + get_phone_number(minute) + ' nA-1 TI-1'
 
@@ -207,9 +182,9 @@ def get_phone_word_tltk(thaiword:str):
         for syl in re.split(r"[|^~\']", token): 
             syl = syl.replace('\\', '') # remove \ e.g. เจิ้น -> c\\@n2
             ### change encoding ###
-            tone = str(int(syl[-1])+1) # 0 -> 1
-            if tone > 5:
-                tone -= 5
+            tone = str(int(syl[-1])+1) # 0->1 because use 0-4 in tltk
+            if int(tone) > 5: # strangely, there are tone "8" in tltk
+                tone = str(int(tone)-5)
             syl = syl[:-1] + tone
             # replace vowels
             syl = re.sub(r'iia(?=\d)', 'J-', syl) # /ia/
@@ -267,9 +242,49 @@ def get_phone_word_tltk(thaiword:str):
 ### G2P FUNCTIONS
 ##################################################
 
-# try tokenization by pythainlp -> look up dictionary
-# if there is None, try use tltk instead
-def g2p(sentence:str, transcription='haas', return_tokens=False):
+def decode(phone:str, transcription='haas'):
+    """decode phone into Haas or IPA
+
+    Parameters
+    ----------
+        phone : str
+            encoded phone, e.g. kot2 mAj5
+        transcription : str
+            'haas'(default) or 'ipa'
+
+    Return
+    ------
+    str
+        decoded phone, e.g. kòt mǎːj
+
+    Example
+    -------
+    decode('" kot2 mAj5 ʔA-1 jA-1 "', 'ipa') ->  " kòt mǎːj ʔaː jaː "
+    """
+    decoded_syls = []
+    syls = phone.split() # ['"', 'kot2', 'mAj5']
+    for i, syl in enumerate(syls):
+        if not validate(syl): # e.g. English, punctuation
+            decoded_syls.append(syl) # return original string
+            continue
+        tone = syl[-1]
+        coda = syl[-2]
+        coda = coda.replace('ʔ','-') # delete ? in all codas
+        """ # delete ? unless the final syllable
+        if i != len(syls) - 1: 
+            coda = coda.replace('ʔ','-') # "-" = no coda
+        """
+        vowel = syl[-3]
+        onset = syl[:-3] # one or two characters
+        if transcription == 'ipa':
+            decoded_syls.append(''.join([PHONE2IPA[c] for c in onset]) + PHONE2IPA[vowel+tone] + PHONE2IPA[coda])
+        elif transcription == 'haas':
+            decoded_syls.append(''.join([PHONE2HAAS[c] for c in onset]) + PHONE2HAAS[vowel+tone] + PHONE2HAAS[coda])
+    return ' '.join(decoded_syls)
+
+# tokenize by pythainlp -> look up dictionary
+# if there is none, try to use tltk instead
+def g2p(sentence, transcription='haas', return_tokens=False):
     """G2P function for Thai sentence
 
     Parameters
@@ -281,15 +296,17 @@ def g2p(sentence:str, transcription='haas', return_tokens=False):
     return_token : bool
         whether return also tokenized sentence
 
-    Returns
-    -------
+    Return
+    ------
     str
         syllables delimited by whitespaces 
         or list of [token, phone]
 
-    >>> g2p('ไปโรงเรียน') -> 'paj rooŋ rian'
-    >>> g2p('ไปโรงเรียน', transcription='ipa') -> 'paj roːŋ rian'
-    >>> g2p('ไปโรงเรียน', return_tokens=True) -> [['ไป', 'pay'], ['โรงเรียน', 'rooŋ rian']]
+    Examples
+    --------
+    g2p('ไปโรงเรียน') -> 'paj rooŋ rian'
+    g2p('ไปโรงเรียน', transcription='ipa') -> 'paj roːŋ rian'
+    g2p('ไปโรงเรียน', return_tokens=True) -> [['ไป', 'pay'], ['โรงเรียน', 'rooŋ rian']]
     """
 
     ### tokenize ###
@@ -299,14 +316,16 @@ def g2p(sentence:str, transcription='haas', return_tokens=False):
     elif type(sentence) == list and type(sentence[0]) == str: # input is tokens already
         tokens = sentence
     
-    token_phone_list = []
+    token_phone_list = [] # list of [token, decoded_phone]
 
     ### check each token ###
     for i, token in enumerate(tokens):
 
         # exceptions
-        if token == 'น.' and i > 0 and (token_phone_list[i-1][1] == 'nA-1 li-4 kA-1' or token_phone_list[i-1][1] == 'nA-1 TI-1'): # avoid duplicate
-            continue
+        if token == 'น.' and i > 0 and\
+            (token_phone_list[i-1][1].endswith(decode('nA-1 li-4 kA-1', transcription))\
+                or token_phone_list[i-1][1].endswith(decode('nA-1 TI-1', transcription))): # avoid duplicate
+            token_phone_list[-1][0] += ' น.' # add to previous token
         elif token == 'ๆ' and i > 0: # if single ๆ, repeat final one
             token_phone_list[-1][0] += ' ๆ'
             token_phone_list[-1][1] += ' ' + token_phone_list[-1][1]

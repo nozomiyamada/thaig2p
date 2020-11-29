@@ -69,20 +69,20 @@ import thaig2p
 |:-:|:-:|:-:|:-:|
 |/บ/|b|b|b|
 |/ป/|p|p|p|
-|/พ/|P|pʰ|pʰ|
+|/พ/|P|pʰ|ph|
 |/ม/|m|m|m|
 |/ฟ/|f|f|f|
 |/ด/|d|d|d|
 |/ต/|t|t|t|
-|/ท/|T|tʰ|tʰ|
+|/ท/|T|tʰ|th|
 |/น/|n|n|n|
 |/ส/|s|s|s|
 |/ร/|r|r|r|
 |/ล/|l|l|l|
 |/จ/|c|tɕ|c|
-|/ช/|C|tɕʰ|cʰ|
+|/ช/|C|tɕʰ|ch|
 |/ก/|k|k|k|
-|/ค/|K|kʰ|kʰ|
+|/ค/|K|kʰ|kh|
 |/ง/|N|ŋ|ŋ|
 |/ว/|w|w|w|
 |/ย/|j|j|y|
@@ -95,8 +95,8 @@ import thaig2p
 ## Note for myself
 
 - ควรจะลบ final glottal stop ? ทุกตัวหรือไม่ (ไม่ใช่ phonological)
-- จัดการ tone ของ light syllable อย่างไร เช่น สบาย /sa?2 bAj1/ or /sa-1 bAj1/
-- "ไทมส์" ทำไงดี (/Tajm/ มี coda สองตัว ซึ่งไม่ตามหลักการ)
+- จัดการ tone ของ light syllable อย่างไร เช่น สบาย /sa?2 baaj1/ or /sa1 baaj1/
+- "ไทมส์" ทำไงดี (/thajm/ มี coda สองตัว ซึ่งไม่ตามหลักการ)
 - เวลาเทรน ใช้ End-to-End model ซึ่งแปลงอักษรไทยไป phone โดยตรง (ไม่ต้องตัดคำก่อน)
 - ผลลัพธ์ของ decoder เป็น tuple (onset, vowel, coda, tone)
 - อาจจะใช้ attention หรือ CNN ใน encoder
