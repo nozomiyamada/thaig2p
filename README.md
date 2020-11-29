@@ -1,10 +1,15 @@
-# thaig2p
+# Thai G2P (grapheme to phoneme) 
 
-dictionary-based + LSTM G2P (grapheme to phoneme)
+## now still testing phase, not recommended for practical use  
+
+dictionary-based conversion -> [web application](https://web.thaicorpus.tk/g2p)
+
++BiLSTM seq2seq model (under construction)
+
 
 in the dictionary, all phonemes are encoded as **one character** as below
 
-one syllable is consist of 4-5 characters
+one syllable consist of 4-5 characters
 
 - onset (1-2)
 - vowel (1)
@@ -68,4 +73,13 @@ e.g.
 |/อ/|?|ʔ|ʔ|
 |no coda|-|||
 
-- "ไทมส์" ทำไงดี 
+
+* Note for myself
+
+- "ไทมส์" ทำไงดี (/Tajm/ มี coda สองตัว ซึ่งไม่ตามหลักการ)
+
+- เวลาเทรน ใช้ End-to-End model ซึ่งแปลงอักษรไทยไป phone โดยตรง (ไม่ต้องตัดคำก่อน)
+
+- ผลลัพธ์ของ decoder เป็น tuple (onset, vowel, coda, tone)
+
+- อาจจะใช้ attention หรือ CNN ใน encoder
