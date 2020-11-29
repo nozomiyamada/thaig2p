@@ -1,5 +1,6 @@
-import os, html, re, tltk, csv
+import csv, os, html, re
 from pythainlp import word_tokenize
+from tltk import g2p as tltkg2p
 
 ##################################################
 ### CONSTANTS
@@ -22,11 +23,11 @@ with open(abs_dir + '/number2phone.csv') as f:
     NUMBER2PHONE_DICT = dict(csv.reader(f))
 
 ##################################################
-### UTILS FUNCTIONS FOR HANDLING PHONES (invisible)
+### UTILS FOR HANDLING PHONES
 ##################################################
 
 # convert short vowel <> long vowel
-def __short2long(vowel_phone):
+def short2long(vowel_phone):
     """convert short vowel into long vowel
     >>> short2long('a') -> A
     """
@@ -35,7 +36,7 @@ def __short2long(vowel_phone):
     except:
         return None
 
-def __long2short(vowel_phone):
+def long2short(vowel_phone):
     """convert long vowel into short vowel
     >>> short2long('A') -> a
     """
@@ -44,7 +45,7 @@ def __long2short(vowel_phone):
     except:
         return None
 
-def __validate(phone):
+def validate(phone):
     """validate encoded phone
     >>> validate('paj1 dAj3') -> True
     >>> validate('aaa aaa') -> False
@@ -65,31 +66,31 @@ def __validate(phone):
             return False
     return True
 
-def __get_tones(phone:str):
+def get_tones(phone:str):
     """get all tones of one word
     >>> get_tones('paj1 dAj3') -> (1, 3)
     """
     return tuple(syl[-1] for syl in phone.split())
 
-def __get_onsets(phone:str, ipa=False):
+def get_onsets(phone:str, ipa=False):
     """get all onsets of one word
     >>> get_onsets('paj1 dAj3') -> (p, d)
     """
     return tuple(syl[:-3] for syl in phone.split())
 
-def __get_vowels(phone:str):
+def get_vowels(phone:str):
     """get all vowels of one word
     >>> get_tones('paj1 dAj3') -> (a, A)
     """
     return tuple(syl[-3] for syl in phone.split())
 
-def __get_codas(phone:str):
+def get_codas(phone:str):
     """get all codas of one word
     >>> get_codas('paj1 dAj3') -> (j, j)
     """
     return tuple(syl[-2] for syl in phone.split())
 
-def __get_vowels_tone(phone:str):
+def get_vowels_tone(phone:str):
     """get all vowels & tones of one word
     >>> get_vowels_tone('paj1 dAj3') -> (a1, A3)
     """
@@ -104,13 +105,13 @@ def decode(phone:str, transcription='haas'):
     decoded_syls = []
     syls = phone.split() # ['kot2','mAj5']
     for i, syl in enumerate(syls):
-        if not __validate(syl): # e.g. English, punctuation
+        if not validate(syl): # e.g. English, punctuation
             decoded_syls.append(syl)
             continue
         tone = syl[-1]
         coda = syl[-2]
-        coda = coda.replace('ʔ','-') # delete all codas
-        """ # unless the final syllable, delete ʔ
+        coda = coda.replace('ʔ','-') # delete ? in all codas
+        """ # delete ? unless the final syllable
         if i != len(syls) - 1: 
             coda = coda.replace('ʔ','-') # "-" = no coda
         """
@@ -134,26 +135,26 @@ def clean(text:str):
     text = re.sub(r'[\r\u200b\ufeff]+', '', text) # remove non-breaking space
     return text.strip()
 
-def __get_phone_word(thaiword:str):
+def get_phone_word(thaiword:str):
     # if the word in the dict, return the phone
     # ไป -> paj1
     return THAI2PHONE_DICT.get(thaiword, None)
 
-def __is_time(text:str):
+def is_time(text:str):
     return bool(re.match(r'\d{1,2}[:\.]\d{1,2}', text))
 
-def __get_phone_time(time:str):
+def get_phone_time(time:str):
     # 20.31 -> jI-3 sip2 nA-1 liʔ4 kA-1 sAm5 sip2 ʔet2 nA-1 TI-1
     hour, minute = re.split(r'[:\.]', time)
     if minute == '00':
-        return __get_phone_number(hour) + ' nA-1 li-4 kA-1'
+        return get_phone_number(hour) + ' nA-1 li-4 kA-1'
     else:
-        return __get_phone_number(hour) + ' nA-1 li-4 kA-1 ' + __get_phone_number(minute) + ' nA-1 TI-1'
+        return get_phone_number(hour) + ' nA-1 li-4 kA-1 ' + get_phone_number(minute) + ' nA-1 TI-1'
 
-def __is_number(text:str):
+def is_number(text:str):
     return bool(re.match(r'\-?\d[\d\,]*(?:\.\d+)?$', text))
 
-def __get_phone_number(number:str):
+def get_phone_number(number:str):
     # 3,120 -> sAm5 Pan1 rXj4 jI-3 sip2
     # 123.123 -> nɯŋ2 rXj4 jI-3 sip2 sAm5 cut2 nɯŋ2 sXŋ5 sAm5
     number = str(number) # float 123.5 -> str "123.5"
@@ -173,32 +174,32 @@ def __get_phone_number(number:str):
             if number in NUMBER2PHONE_DICT:
                 phone = NUMBER2PHONE_DICT[number]
             else:
-                phone = NUMBER2PHONE_DICT[number[0]+'0'*(length-1)] + ' ' + __get_phone_number(number[1:]) # 345 -> 300 + 45 (recursive)
+                phone = NUMBER2PHONE_DICT[number[0]+'0'*(length-1)] + ' ' + get_phone_number(number[1:]) # 345 -> 300 + 45 (recursive)
         elif length <= 12: # 12 = trillion = ล้านล้าน
             # 123456000 -> 123 + ล้าน + 456000
             upper = number[:-6]
             lower = number[-6:] # xxx ล้าน
             if lower == '000000':
-                phone = __get_phone_number(upper) + ' lAn4'
+                phone = get_phone_number(upper) + ' lAn4'
             else:
-                phone = __get_phone_number(upper) + ' lAn4 ' + __get_phone_number(lower)
+                phone = get_phone_number(upper) + ' lAn4 ' + get_phone_number(lower)
         else:
             return number # longer than 12, return original
     else: # if decimal
         integer, decimal = number.split('.')
-        decimal = ' '.join([__get_phone_number(x) for x in decimal]) # get one by one
-        phone = __get_phone_number(integer) + ' cut2 ' + decimal
+        decimal = ' '.join([get_phone_number(x) for x in decimal]) # get one by one
+        phone = get_phone_number(integer) + ' cut2 ' + decimal
     if minus:
         return 'lop4 ' + phone
     else:
         return phone
 
-def __get_phone_word_tltk(thaiword:str):
+def get_phone_word_tltk(thaiword:str):
     # if the word is not in dict, use tltk instead
     # tltk may return several sentences e.g. <tr/>paj0|maj4|<s/><tr/>maj2|paj0|<s/>
     # sentences = ['paj0|maj4', 'maj2|paj0']
     decoded_syls = []
-    result = tltk.g2p(thaiword)
+    result = tltkg2p(thaiword)
     tokens = re.findall(r'<tr/>(.+?)\|<s/>', result)
     for token in tokens: # 'paj0|maj4'
         # split to each syllable 'paj0', 'maj4'
@@ -302,29 +303,42 @@ def g2p(sentence:str, transcription='haas', return_tokens=False):
 
     ### check each token ###
     for i, token in enumerate(tokens):
+
+        # exceptions
         if token == 'น.' and i > 0 and (token_phone_list[i-1][1] == 'nA-1 li-4 kA-1' or token_phone_list[i-1][1] == 'nA-1 TI-1'): # avoid duplicate
             continue
         elif token == 'ๆ' and i > 0: # if single ๆ, repeat final one
-            #print(token_phone_list[-1])
             token_phone_list[-1][0] += ' ๆ'
             token_phone_list[-1][1] += ' ' + token_phone_list[-1][1]
+        
+        # Thai word in dictionary
         elif token in THAI2PHONE_DICT:
-            phone = decode(__get_phone_word(token), transcription=transcription)
-        elif re.match('[ก-ฮ]$', token): # only one thai character -> pass
+            phone = decode(get_phone_word(token), transcription=transcription)
+
+        # single thai character (maybe mistake of tokenization) -> pass
+        elif re.match('[ก-ฮ]$', token): 
             continue
+
         # thaiword, but not in dictionary -> use tltk instead
         elif re.match(r'[ก-๙][ก-๙\-\.]*$', token): 
-            #phone = None # return None when test
-            phone = decode(__get_phone_word_tltk(token), transcription=transcription)
-        elif __is_time(token):
-            phone = decode(__get_phone_time(token), transcription=transcription)
-        elif __is_number(token):
-            phone = decode(__get_phone_number(token), transcription=transcription)
-        else: # do nothing for the others, e.g. english, punctuation...
+            #phone = None  # return None, use this line when test
+            phone = decode(get_phone_word_tltk(token), transcription=transcription)
+        
+        # time e.g. 22.34 
+        elif is_time(token):
+            phone = decode(get_phone_time(token), transcription=transcription)
+        
+        # number
+        elif is_number(token):
+            phone = decode(get_phone_number(token), transcription=transcription)
+        
+        # return original token, e.g. english, punctuation...
+        else: 
             phone = token
+
         token_phone_list.append([token, phone])
     if return_tokens:
-        return token_phone_list
+        return token_phone_list # return as list of [token, phone]
     else:
         return ' '.join([phone for _, phone in token_phone_list])
 
