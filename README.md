@@ -7,9 +7,9 @@ dictionary-based conversion -> [web application](https://web.thaicorpus.tk/g2p)
 +BiLSTM seq2seq model (under construction)
 
 
-in the dictionary, all phonemes are encoded as **one character** as below
+in the dictionaries, each phoneme is encoded as **one character** as below
 
-one syllable consist of 4-5 characters
+(encoded one syllable consists of 4-5 characters according to Thai syllable structure)
 
 - onset (1-2)
 - vowel (1)
@@ -29,10 +29,10 @@ e.g.
 import thaig2p
 
 >>> thaig2p.g2p('ผมจะไปโรงเรียนพรุ่งนี้')
-'phǒm càʔ pay rooŋ rian phrûŋ níi'
+'phǒm càʔ pay rooŋ rian phrûŋ níi'
 
 >>> thaig2p.g2p('หิวข้าวแล้ว', 'ipa', return_tokens=True)
-[['หิวข้าว', 'hǐw kʰâːw'], ['แล้ว', 'lɛ́ːw']]
+[['หิวข้าว', 'hǐw kʰâːw'], ['แล้ว', 'lɛ́ːw']]
 ~~~
 
 2 transcription styles: `haas`(default) or `ipa` 
