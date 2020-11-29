@@ -20,6 +20,23 @@ e.g.
 - ปลา `plA-1`
 - ธนาคารแห่งประเทศไทย `Ta-4 nA-1 KAn1 hyN2 pra-1 TEt3 Taj1`
 
+### dependencies
+
+- pythainlp (for tokenization)
+- tltk (for rule-based conversion)
+
+~~~python
+import thaig2p
+
+>>> thaig2p.g2p('ผมจะไปโรงเรียนพรุ่งนี้')
+'phǒm càʔ pay rooŋ rian phrûŋ níi'
+
+>>> thaig2p.g2p('หิวข้าวแล้ว', 'ipa', return_tokens=True)
+[['หิวข้าว', 'hǐw kʰâːw'], ['แล้ว', 'lɛ́ːw']]
+~~~
+
+2 transcription styles: `haas`(default) or `ipa` 
+
 ### vowels
 
 |phoneme|encoded|IPA|Haas|
@@ -74,12 +91,12 @@ e.g.
 |no coda|-|||
 
 
-* Note for myself
 
+## Note for myself
+
+- ควรจะลบ final glottal stop ? ทุกตัวหรือไม่ (ไม่ใช่ phonological)
+- จัดการ tone ของ light syllable อย่างไร เช่น สบาย /sa?2 bAj1/ or /sa-1 bAj1/
 - "ไทมส์" ทำไงดี (/Tajm/ มี coda สองตัว ซึ่งไม่ตามหลักการ)
-
 - เวลาเทรน ใช้ End-to-End model ซึ่งแปลงอักษรไทยไป phone โดยตรง (ไม่ต้องตัดคำก่อน)
-
 - ผลลัพธ์ของ decoder เป็น tuple (onset, vowel, coda, tone)
-
 - อาจจะใช้ attention หรือ CNN ใน encoder
