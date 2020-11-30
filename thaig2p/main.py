@@ -12,7 +12,7 @@ DIPHTHONGS = "JWR"
 VOWELS = SHORT_VOWELS + LONG_VOWELS + DIPHTHONGS
 CLUSTERS = ["br","bl","pr","pl","Pr","Pl","fr","fl","dr","tr","Tr","kr","kl","kw","Kr","Kl","Kw"]
 ONSETS = ["b","p","P","m","f","d","t","T","n","s","r","l","c","C","k","K","N","w","j","h","?"]
-CODAS = ["p","m","f","t","d","n","s","l","k","N","w","j","?","-"]
+CODAS = ["p","m","f","t","d","n","s","l","c","k","N","w","j","?","-"]
 
 # read dictionary
 abs_dir = os.path.dirname(__file__)
@@ -175,11 +175,11 @@ def get_phone_word_tltk(thaiword:str):
     # sentences = ['paj0|maj4', 'maj2|paj0']
     decoded_syls = []
     result = tltkg2p(thaiword)
-    tokens = re.findall(r'<tr/>(.+?)\|<s/>', result)
+    tokens = re.findall(r'<tr/>(\S+?)\|(?:<s/>|\s)', result)
     for token in tokens: # 'paj0|maj4'
         # split to each syllable 'paj0', 'maj4'
         # delimiter : | or ^ or ~ '
-        for syl in re.split(r"[|^~\']", token): 
+        for syl in re.split(r"[|^~\']", token):
             syl = syl.replace('\\', '') # remove \ e.g. เจิ้น -> c\\@n2
             ### change encoding ###
             tone = str(int(syl[-1])+1) # 0->1 because use 0-4 in tltk

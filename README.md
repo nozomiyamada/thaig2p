@@ -9,7 +9,7 @@ dictionary-based conversion -> [web application](https://web.thaicorpus.tk/g2p)
 
 in the dictionaries, each phoneme is encoded as **one character** as below
 
-(encoded one syllable consists of 4-5 characters according to Thai syllable structure)
+encoded one syllable consists of 4-5 characters according to general Thai syllable structure (C)CV(C)
 
 - onset (1-2)
 - vowel (1)
@@ -37,7 +37,9 @@ import thaig2p
 
 2 transcription styles: `haas`(default) or `ipa` 
 
-### vowels
+## vowels 
+
+short 9 + long 9 + diphthong 3
 
 |phoneme|encoded|IPA|Haas|
 |:-:|:-:|:-:|:-:|
@@ -63,34 +65,50 @@ import thaig2p
 |/เอือ/|W|ɯə|ɯa|
 |/อัว/|R|uə|ua|
 
-### consonants
 
-|phoneme|encoded|IPA|Haas|
-|:-:|:-:|:-:|:-:|
-|/บ/|b|b|b|
-|/ป/|p|p|p|
-|/พ/|P|pʰ|ph|
-|/ม/|m|m|m|
-|/ฟ/|f|f|f|
-|/ด/|d|d|d|
-|/ต/|t|t|t|
-|/ท/|T|tʰ|th|
-|/น/|n|n|n|
-|/ส/|s|s|s|
-|/ร/|r|r|r|
-|/ล/|l|l|l|
-|/จ/|c|tɕ|c|
-|/ช/|C|tɕʰ|ch|
-|/ก/|k|k|k|
-|/ค/|K|kʰ|kh|
-|/ง/|N|ŋ|ŋ|
-|/ว/|w|w|w|
-|/ย/|j|j|y|
-|/ห/|h|h|h|
-|/อ/|?|ʔ|ʔ|
+## consonants
+
+21 + no coda
+
+|phoneme|encoded|IPA|Haas|used as coda|
+|:-:|:-:|:-:|:-:|:-:|
+|/บ/|b|b|b||
+|/ป/|p|p|p|✅|
+|/พ/|P|pʰ|ph||
+|/ม/|m|m|m|✅|
+|/ฟ/|f|f|f|few|
+|/ด/|d|d|d|few|
+|/ต/|t|t|t|✅|
+|/ท/|T|tʰ|th||
+|/น/|n|n|n|✅|
+|/ส/|s|s|s|few|
+|/ร/|r|r|r||
+|/ล/|l|l|l|few|
+|/จ/|c|tɕ|c|few|
+|/ช/|C|tɕʰ|ch||
+|/ก/|k|k|k|✅|
+|/ค/|K|kʰ|kh||
+|/ง/|N|ŋ|ŋ|✅|
+|/ว/|w|w|w|✅|
+|/ย/|j|j|y|✅|
+|/ห/|h|h|h||
+|/อ/|?|ʔ|ʔ|disputable|
 |no coda|-|||
 
+in this program, define possible clusters/onsets/codas as below
 
+~~~python
+CLUSTERS = ["br","bl","pr","pl","Pr","Pl","fr","fl","dr","tr","Tr","kr","kl","kw","Kr","Kl","Kw"]
+ONSETS = ["b","p","P","m","f","d","t","T","n","s","r","l","c","C","k","K","N","w","j","h","?"]
+CODAS = ["p","m","f","t","d","n","s","l","c","k","N","w","j","?","-"]
+~~~
+
+undecodable characters will be ignored
+
+~~~python
+>>> thaig2p.decode('mAt3 trA-1 ABC あいう',)
+'mâat traa ABC あいう'
+~~~
 
 ## Note for myself
 
