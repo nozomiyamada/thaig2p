@@ -251,7 +251,7 @@ def decode(phone, transcription='haas'):
             encoded syllbles
             e.g. 'kot2 mAj5' or ['kot2', 'mAj5']
         transcription : str
-            'haas'(default) or 'ipa'
+            'haas'(default) or 'ipa' or 'RTGS'
 
     Return
     ------
@@ -286,10 +286,12 @@ def decode(phone, transcription='haas'):
         """
         vowel = syl[-3]
         onset = syl[:-3] # one or two characters
-        if transcription == 'ipa':
+        if transcription.lower() == 'ipa':
             decoded_syls.append(''.join([PHONE2IPA[c] for c in onset]) + PHONE2IPA[vowel+tone] + PHONE2IPA[coda])
-        elif transcription == 'haas':
+        elif transcription.lower() == 'haas':
             decoded_syls.append(''.join([PHONE2HAAS[c] for c in onset]) + PHONE2HAAS[vowel+tone] + PHONE2HAAS[coda])
+        elif transcription.lower() == 'rtgs':
+            decoded_syls.append(''.join([PHONE2RTGS[c] for c in onset]) + PHONE2RTGS[vowel+tone] + PHONE2RTGS_CODA[coda])
     return ' '.join(decoded_syls)
 
 # tokenize by pythainlp -> look up dictionary
@@ -481,6 +483,45 @@ PHONE2HAAS = {
     'r' :'r' ,'l' :'l' ,'c' :'c' ,'C' :'ch',
     'k' :'k' ,'K' :'kh','N' :'ŋ' ,
     'w' :'w' ,'j' :'y' ,'h' :'h' ,'?' :'ʔ' ,
+    '.':'.',   '-':''
+}
+
+PHONE2RTGS = {
+    'a1':'a' ,'a2':'a' ,'a3':'a' ,'a4':'a' ,'a5':'a',
+    'A1':'a' ,'A2':'a' ,'A3':'a' ,'A4':'a' ,'A5':'a',
+    'i1':'i' ,'i2':'i' ,'i3':'i' ,'i4':'i' ,'i5':'i',
+    'I1':'i' ,'I2':'i' ,'I3':'i' ,'I4':'i' ,'I5':'i',
+    'u1':'u' ,'u2':'u' ,'u3':'u' ,'u4':'u' ,'u5':'u',
+    'U1':'u' ,'U2':'u' ,'U3':'u' ,'U4':'u' ,'U5':'u',
+    'v1':'ue','v2':'ue','v3':'ue','v4':'ue','v5':'ue',
+    'V1':'ue','V2':'ue','V3':'ue','V4':'ue','V5':'ue',
+    'e1':'e' ,'e2':'e' ,'e3':'e' ,'e4':'e' ,'e5':'e',
+    'E1':'e' ,'E2':'e' ,'E3':'e' ,'E4':'e' ,'E5':'e',
+    'y1':'ae','y2':'ae','y3':'ae','y4':'ae','y5':'ae',
+    'Y1':'ae','Y2':'ae','Y3':'ae','Y4':'ae','Y5':'ae',
+    'o1':'o' ,'o2':'o' ,'o3':'o' ,'o4':'o' ,'o5':'o',
+    'O1':'o' ,'O2':'o' ,'O3':'o' ,'O4':'o' ,'O5':'o',
+    'x1':'o' ,'x2':'o' ,'x3':'o' ,'x4':'o' ,'x5':'o',
+    'X1':'o' ,'X2':'o' ,'X3':'o' ,'X4':'o' ,'X5':'o',
+    'z1':'oe','z2':'oe','z3':'oe','z4':'oe','z5':'oe',
+    'Z1':'oe','Z2':'oe','Z3':'oe','Z4':'oe','Z5':'oe',
+    'J1':'ia','J2':'ia','J3':'ia','J4':'ia','J5':'ia',
+    'W1':'uea','W2':'uea','W3':'uea','W4':'uea','W5':'uea',
+    'R1':'ua','R2':'ua','R3':'ua','R4':'ua','R5':'ua',
+    'b' :'b' ,'p' :'p' ,'P' :'ph','m' :'m' ,'f' :'f' ,
+    'd' :'d' ,'t' :'t' ,'T' :'th','n' :'n' ,'s' :'s' ,
+    'r' :'r' ,'l' :'l' ,'c' :'c' ,'C' :'ch',
+    'k' :'k' ,'K' :'kh','N' :'ng' ,
+    'w' :'w' ,'j' :'y' ,'h' :'h' ,'?' :'' ,
+    '.':'.',   '-':''
+}
+
+PHONE2RTGS_CODA = {
+    'b' :'b' ,'p' :'p' ,'P' :'ph','m' :'m' ,'f' :'f' ,
+    'd' :'d' ,'t' :'t' ,'T' :'th','n' :'n' ,'s' :'s' ,
+    'r' :'r' ,'l' :'l' ,'c' :'c' ,'C' :'ch',
+    'k' :'k' ,'K' :'kh','N' :'ng' ,
+    'w' :'o' ,'j' :'i' ,'h' :'h' ,'?' :'' ,
     '.':'.',   '-':''
 }
 
