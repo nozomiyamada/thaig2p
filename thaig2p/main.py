@@ -14,7 +14,7 @@ CLUSTERS = ["br","bl","pr","pl","Pr","Pl","fr","fl","dr","tr","Tr","kr","kl","kw
 ONSETS = ["b","p","P","m","f","d","t","T","n","s","r","l","c","C","k","K","N","w","j","h","?"]
 CODAS = ["p","m","f","t","d","n","s","l","c","k","N","w","j","?","-"]
 
-# read dictionary
+### read dictionary
 abs_dir = os.path.dirname(__file__)
 with open(abs_dir + '/thai2phone.csv') as f:
     THAI2PHONE_DICT = dict(csv.reader(f))
@@ -60,7 +60,7 @@ def validate(phone):
         except:
             return False 
         # check all 4 parts are valid
-        if tone.isdigit() and coda in CODAS and vowel in VOWELS and onset in CLUSTERS+ONSETS:
+        if tone in '12345' and coda in CODAS and vowel in VOWELS and onset in CLUSTERS+ONSETS:
             continue
         else:
             return False
@@ -242,7 +242,7 @@ def get_phone_word_tltk(thaiword:str):
 ### G2P FUNCTIONS
 ##################################################
 
-def decode(phone, transcription='haas'):
+def decode(phone, transcription='haas', keep_space=True):
     """decode phone into Haas or IPA
 
     Parameters
@@ -264,10 +264,10 @@ def decode(phone, transcription='haas'):
             'kòt mǎːj ʔaː jaː 123'
     """
 
-    # check type of parameter
-    if type(phone) == str:
-        syls = phone.split() # ['"', 'kot2', 'mAj5']
-    elif type(phone) == list:
+    ## check type of parameter
+    if type(phone) == str: # one string e.g. "kot2 mAj5" 
+        syls = phone.split() 
+    elif type(phone) == list: # ['kot2', 'mAj5']
         syls = phone
     else:
         raise TypeError
@@ -292,7 +292,13 @@ def decode(phone, transcription='haas'):
             decoded_syls.append(''.join([PHONE2HAAS[c] for c in onset]) + PHONE2HAAS[vowel+tone] + PHONE2HAAS[coda])
         elif transcription.lower() == 'rtgs':
             decoded_syls.append(''.join([PHONE2RTGS[c] for c in onset]) + PHONE2RTGS[vowel+tone] + PHONE2RTGS_CODA[coda])
-    return ' '.join(decoded_syls)
+    if keep_space == False:
+        decoded_syls = ''.join(decoded_syls)
+    elif type(keep_space) == str: # custom delimiter
+        decoded_syls = keep_space.join(decoded_syls)
+    else:
+        decoded_syls = ''.join(decoded_syls)
+    return decoded_syls
 
 # tokenize by pythainlp -> look up dictionary
 # if there is none, try to use tltk instead
@@ -304,7 +310,7 @@ def g2p(sentence, transcription='haas', return_tokens=False, decoded=True):
     sentence : str or list
         string of Thai sentences or list of tokenized words 
     transcription : str
-        'haas'(default) or 'ipa'
+        'haas'(default) or 'ipa' or 'rtgs'
     return_tokens : bool
         whether returns also tokenized sentence
     decoded : bool
